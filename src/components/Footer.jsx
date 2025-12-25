@@ -27,7 +27,7 @@ export function Footer() {
               >
                 <Github className="h-5 w-5" />
               </a>
-              
+
               <a 
                 href="https://www.linkedin.com/in/abiy-aragie-963b45388/" 
                 target="_blank" 
@@ -93,9 +93,39 @@ export function Footer() {
                   Technology
                 </Link>
               </li>
+              <li>
+                <Link to="/blog?category=Business" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Business
+                </Link>
+              </li>
+              <li>
+                <Link to="/blog?category=Lifestyle" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Lifestyle
+                </Link>
+              </li>
             </ul>
           </div>
 
+          {/* Newsletter */}
+          <div>
+            <h4 className="font-heading font-semibold mb-4">Stay Updated</h4>
+            <p className="text-sm text-muted-foreground mb-4">
+              Get the latest posts delivered to your inbox.
+            </p>
+            <form className="flex gap-2">
+              <input
+                type="email"
+                placeholder="youremail@gmail.com"
+                className="flex-1 px-3 py-2 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                Subscribe
+              </button>
+            </form>
+          </div>
         </div>
 
         <div className="mt-12 pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">

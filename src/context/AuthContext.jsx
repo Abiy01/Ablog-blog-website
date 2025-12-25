@@ -1,95 +1,89 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '../services/authService';
+import { authAPI } from '../lib/api';
 
 const AuthContext = createContext(undefined);
 
-const AUTH_TOKEN_KEY = 'blog_auth_token';
 const CURRENT_ADMIN_KEY = 'blog_current_admin';
 
 export function AuthProvider({ children }) {
   const [admin, setAdmin] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize auth state from localStorage and verify with API
+  // Initialize auth state from token
   useEffect(() => {
-    const initializeAuth = async () => {
-      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
       const storedAdmin = localStorage.getItem(CURRENT_ADMIN_KEY);
       
       if (token && storedAdmin) {
         try {
-          // Verify token with backend
-          const userData = await authService.getCurrentUser();
+          // Verify token is still valid by fetching current user
+          const userData = await authAPI.getMe();
           setAdmin({
-            _id: userData._id,
+            id: userData._id,
             name: userData.name,
             email: userData.email,
-            role: userData.role
           });
         } catch (error) {
-          // Token invalid, clear storage
-          authService.logout();
+          // Token is invalid, clear storage
+          localStorage.removeItem('token');
+          localStorage.removeItem(CURRENT_ADMIN_KEY);
           setAdmin(null);
         }
       }
       setIsLoading(false);
     };
 
-    initializeAuth();
+    initAuth();
   }, []);
 
   // Register a new admin
   const register = async (name, email, password) => {
     try {
-      const userData = await authService.register(name, email, password);
-      setAdmin({
-        _id: userData._id,
-        name: userData.name,
-        email: userData.email,
-        role: userData.role
-      });
-      return userData;
+      const data = await authAPI.register(name, email, password);
+      
+      // Store token and admin data
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+      const adminData = {
+        id: data._id,
+        name: data.name,
+        email: data.email,
+      };
+      localStorage.setItem(CURRENT_ADMIN_KEY, JSON.stringify(adminData));
+      setAdmin(adminData);
+
+      return adminData;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Registration failed');
+      throw error;
     }
   };
 
   // Login admin
   const login = async (email, password) => {
     try {
-      const userData = await authService.login(email, password);
-      setAdmin({
-        _id: userData._id,
-        name: userData.name,
-        email: userData.email,
-        role: userData.role
-      });
-      return userData;
+      const data = await authAPI.login(email, password);
+      
+      const adminData = {
+        id: data._id,
+        name: data.name,
+        email: data.email,
+      };
+      localStorage.setItem(CURRENT_ADMIN_KEY, JSON.stringify(adminData));
+      setAdmin(adminData);
+
+      return adminData;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Invalid email or password');
+      throw error;
     }
   };
 
   // Logout admin
   const logout = () => {
-    authService.logout();
+    authAPI.logout();
+    localStorage.removeItem(CURRENT_ADMIN_KEY);
     setAdmin(null);
-  };
-
-  // Refresh admin data
-  const refreshAdmin = async () => {
-    try {
-      const userData = await authService.getCurrentUser();
-      setAdmin({
-        _id: userData._id,
-        name: userData.name,
-        email: userData.email,
-        role: userData.role
-      });
-      return userData;
-    } catch (error) {
-      console.error('Error refreshing admin:', error);
-    }
   };
 
   // Check if authenticated
@@ -102,8 +96,7 @@ export function AuthProvider({ children }) {
       isLoading,
       login,
       register,
-      logout,
-      refreshAdmin
+      logout
     }}>
       {children}
     </AuthContext.Provider>

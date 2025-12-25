@@ -14,24 +14,31 @@ export default function BlogPost() {
   
   useEffect(() => {
     const loadBlog = async () => {
-      setIsLoading(true);
-      const fetchedBlog = await getBlogBySlug(slug);
-      setBlog(fetchedBlog);
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        const blogData = await getBlogBySlug(slug);
+        setBlog(blogData);
+      } catch (error) {
+        console.error('Error loading blog:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     loadBlog();
-  }, [slug]);
+  }, [slug, getBlogBySlug]);
   
-  const relatedBlogs = blog ? getPublishedBlogs()
-    .filter(b => b.slug !== slug && b.category === blog?.category)
-    .slice(0, 3) : [];
+  const relatedBlogs = blog 
+    ? getPublishedBlogs()
+        .filter(b => b.slug !== slug && b.category === blog?.category)
+        .slice(0, 3)
+    : [];
 
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading article...</p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -54,11 +61,17 @@ export default function BlogPost() {
     );
   }
 
-  const formattedDate = new Date(blog.publishedAt).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  const formattedDate = blog.publishedAt 
+    ? new Date(blog.publishedAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    : new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
 
   // Estimate reading time (avg 200 words per minute)
   const wordCount = blog.content.split(/\s+/).length;

@@ -14,6 +14,9 @@ export default function Contact() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Get Web3Forms access key from environment variable
+  const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || '';
+
   const handleChange = (e) => {
     setFormState(prev => ({
       ...prev,
@@ -23,52 +26,54 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!accessKey) {
+      toast({
+        title: 'Configuration Error',
+        description: 'Web3Forms access key is not configured. Please add VITE_WEB3FORMS_ACCESS_KEY to your .env file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsLoading(true);
     
     try {
-      // Get Web3Forms access key from environment variable
-      const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
-      
-      if (!accessKey) {
-        throw new Error('Web3Forms access key is not configured. Please add VITE_WEB3FORMS_ACCESS_KEY to your .env file.');
-      }
-
-      // Prepare form data for Web3Forms
-      const formData = new FormData();
+      const formData = new FormData(e.target);
       formData.append('access_key', accessKey);
-      formData.append('name', formState.name);
-      formData.append('email', formState.email);
-      formData.append('subject', formState.subject);
-      formData.append('message', formState.message);
-      formData.append('from_name', 'Ablog Contact Form');
       
-      // Submit to Web3Forms API
+      // Optional: Add additional fields
+      formData.append('from_name', 'Ablog Contact Form');
+      formData.append('subject', formState.subject || 'New Contact Form Submission');
+
       const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        body: formData
+        body: formData,
       });
 
-      const result = await response.json();
+      const data = await response.json();
 
-      if (result.success) {
+      if (data.success) {
         setIsSubmitted(true);
         setFormState({ name: '', email: '', subject: '', message: '' });
-        setIsLoading(false);
+        // Reset the form
+        e.target.reset();
         toast({
           title: 'Message sent successfully!',
           description: 'We\'ll get back to you as soon as possible.',
         });
       } else {
-        throw new Error(result.message || 'Failed to send message. Please try again.');
+        throw new Error(data.message || 'Failed to send message');
       }
     } catch (error) {
-      console.error('Form submission error:', error);
-      setIsLoading(false);
+      console.error('Error submitting contact form:', error);
       toast({
         title: 'Error sending message',
-        description: error.message || 'Failed to send message. Please try again later.',
+        description: error.message || 'Something went wrong. Please try again later.',
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -147,7 +152,6 @@ export default function Contact() {
                     <h3 className="font-medium mb-1">Location</h3>
                     <p className="text-muted-foreground">
                       Addis Ababa, Ethiopia<br />
-                      
                     </p>
                   </div>
                 </div>
@@ -180,7 +184,10 @@ export default function Contact() {
                     <h2 className="font-heading text-xl font-semibold mb-6">
                       Send us a Message
                     </h2>
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6" name="contact-form">
+                      {/* Honeypot field for spam protection */}
+                      <input type="checkbox" name="botcheck" className="hidden" style={{ display: 'none' }} />
+                      
                       <div className="grid sm:grid-cols-2 gap-6">
                         <div>
                           <label htmlFor="name" className="block text-sm font-medium mb-2">
@@ -209,7 +216,7 @@ export default function Contact() {
                             onChange={handleChange}
                             required
                             className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                            placeholder="your@gmail.com"
+                            placeholder="youremail@gmail.com"
                           />
                         </div>
                       </div>

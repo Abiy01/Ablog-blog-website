@@ -1,73 +1,342 @@
-# Welcome to your Lovable project
+# Ablog - Blog Website
 
-## Project info
+A modern, full-stack blog website built with React (Vite) frontend and MERN stack backend.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+### Frontend
+- Modern React UI with Tailwind CSS and shadcn/ui components
+- Responsive design
+- Dark mode support
+- Blog post management
+- Admin dashboard
+- Contact form with Web3Forms integration
+- Search and filtering
+- Category and tag filtering
 
-There are several ways of editing your application.
+### Backend
+- Express.js REST API
+- MongoDB database
+- JWT authentication
+- Protected admin routes
+- Full CRUD operations for blog posts
+- Admin dashboard statistics
 
-**Use Lovable**
+## Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### Frontend
+- React 18
+- Vite
+- React Router
+- Tailwind CSS
+- shadcn/ui
+- React Query
 
-Changes made via Lovable will be committed automatically to this repo.
+### Backend
+- Node.js
+- Express.js
+- MongoDB with Mongoose
+- JWT authentication
+- bcryptjs for password hashing
 
-**Use your preferred IDE**
+## Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
+- Node.js (v16 or higher)
+- MongoDB (local or cloud instance)
+- npm or yarn
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Quick Start
 
-Follow these steps:
+#### 1. Backend Setup
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+cd server
+npm install
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Create a `.env` file in the `server` directory:
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/ablog
+JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
+JWT_EXPIRE=7d
+FRONTEND_URL=http://localhost:5173
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+Start MongoDB (if running locally):
+```bash
+# On macOS with Homebrew
+brew services start mongodb-community
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# On Linux
+sudo systemctl start mongod
+
+# On Windows
+# Start MongoDB service from Services panel
+```
+
+Start the backend:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The backend API will be available at `http://localhost:5000`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+#### 2. Frontend Setup
 
-**Use GitHub Codespaces**
+```bash
+# From project root
+npm install
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Create a `.env` file in the root directory:
+```env
+VITE_API_URL=http://localhost:5000/api
 
-## What technologies are used for this project?
+# Web3Forms Configuration (for contact form)
+# Get your access key from https://web3forms.com/
+# Just enter your email address and you'll receive an access key
+VITE_WEB3FORMS_ACCESS_KEY=your_web3forms_access_key_here
+```
 
-This project is built with:
+Start the frontend:
+```bash
+npm run dev
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+The frontend will be available at `http://localhost:5173`
 
-## How can I deploy this project?
+#### 3. Configure Web3Forms (for Contact Form)
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+1. Visit [Web3Forms](https://web3forms.com/)
+2. Enter your email address to receive an access key
+3. Add the access key to your `.env` file as `VITE_WEB3FORMS_ACCESS_KEY`
+4. The contact form will now send submissions directly to your email
 
-## Can I connect a custom domain to my Lovable project?
+#### 4. First Steps
 
-Yes, you can!
+1. Open `http://localhost:5173` in your browser
+2. Navigate to `/admin/register` to create your first admin account
+3. Login at `/admin/login`
+4. Start creating blog posts!
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## MongoDB Setup Options
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### Option 1: Local MongoDB
+- Install MongoDB locally
+- Use connection string: `mongodb://localhost:27017/ablog`
+
+### Option 2: MongoDB Atlas (Cloud)
+- Create a free account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+- Create a cluster
+- Get connection string
+- Update `MONGODB_URI` in `.env` with your Atlas connection string
+
+## Project Structure
+
+```
+ablog-blog-website/
+├── server/                 # Backend API
+│   ├── config/            # Database configuration
+│   ├── models/            # MongoDB models
+│   ├── routes/            # API routes
+│   ├── middleware/        # Auth and error middleware
+│   └── server.js          # Express server
+├── src/                   # Frontend React app
+│   ├── components/        # React components
+│   ├── context/           # React contexts
+│   ├── pages/             # Page components
+│   ├── lib/               # Utilities and API client
+│   └── layouts/           # Layout components
+└── public/                # Static assets
+```
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register a new admin
+- `POST /api/auth/login` - Login admin
+- `GET /api/auth/me` - Get current user (protected)
+
+### Blog Posts
+- `GET /api/posts` - Get all posts (with optional filters: status, featured, category, tag, search)
+- `GET /api/posts/:id` - Get post by ID
+- `GET /api/posts/slug/:slug` - Get post by slug
+- `GET /api/posts/categories` - Get all categories
+- `GET /api/posts/tags` - Get all tags
+- `POST /api/posts` - Create new post (protected)
+- `PUT /api/posts/:id` - Update post (protected)
+- `DELETE /api/posts/:id` - Delete post (protected)
+
+### Contact
+- `POST /api/contact` - Submit contact form
+- `GET /api/contact` - Get all contacts (protected)
+- `GET /api/contact/:id` - Get contact by ID (protected)
+- `PUT /api/contact/:id/status` - Update contact status (protected)
+
+### Admin
+- `GET /api/admin/stats` - Get dashboard statistics (protected)
+- `PUT /api/admin/profile` - Update admin profile (protected)
+- `PUT /api/admin/password` - Change password (protected)
+
+## Authentication
+
+Protected routes require a JWT token in the Authorization header:
+```
+Authorization: Bearer <token>
+```
+
+## Database Models
+
+### User
+- name, email, password, role
+
+### Post
+- title, slug, excerpt, content, coverImage, author, authorId, category, tags, publishedAt, featured, status, views
+
+### Contact
+- name, email, subject, message, status
+
+## Troubleshooting
+
+### Backend won't start
+- Check if MongoDB is running
+- Verify `.env` file exists and has correct values
+- Check if port 5000 is available
+
+### Frontend can't connect to backend
+- Verify backend is running on port 5000
+- Check `VITE_API_URL` in frontend `.env`
+- Check CORS settings in backend
+
+### Authentication issues
+- Clear browser localStorage
+- Check JWT_SECRET is set in backend `.env`
+- Verify token is being sent in API requests
+
+### Post creation not working
+- Make sure you're logged in as admin
+- Check if JWT token is stored in localStorage
+- Verify all required fields are filled (title, content, category)
+- Check browser console and network tab for errors
+
+### Common Issues
+
+#### "Not authorized, no token"
+**Solution**: Make sure you're logged in. Token should be in localStorage.
+
+#### "Title is required" or validation errors
+**Solution**: Make sure all required fields are filled:
+- Title (required)
+- Content (required)
+- Category (required, must be one of: Design, Development, Technology, Business, Lifestyle)
+
+#### "A post with this title already exists"
+**Solution**: The slug generated from your title already exists. Try a different title.
+
+#### CORS errors
+**Solution**: 
+- Check `FRONTEND_URL` in backend `.env` matches your frontend URL
+- Default should be: `http://localhost:5173`
+
+#### MongoDB connection errors
+**Solution**:
+- Make sure MongoDB is running
+- Check `MONGODB_URI` in backend `.env`
+- For local MongoDB: `mongodb://localhost:27017/ablog`
+
+## Deployment to Vercel
+
+### Frontend Deployment (Vercel)
+
+1. **Push your code to GitHub** (if not already done)
+
+2. **Go to [vercel.com](https://vercel.com)** and sign in
+
+3. **Click "New Project"** and import your repository
+
+4. **Vercel will auto-detect Vite** - no configuration needed!
+
+5. **Add Environment Variables** in Vercel Dashboard:
+   - `VITE_API_URL` - Your backend API URL (set this after deploying backend)
+   - `VITE_WEB3FORMS_ACCESS_KEY` - Your Web3Forms access key
+
+6. **Click Deploy** - Vercel will automatically build and deploy
+
+### Backend Deployment (Railway - Recommended)
+
+The backend needs to be deployed separately. Railway is recommended:
+
+1. **Go to [railway.app](https://railway.app)** and sign in
+
+2. **Create a New Project** → **Add MongoDB** (free tier available)
+
+3. **Add Backend Service**:
+   - Click "New" → "GitHub Repo"
+   - Select your repository
+   - Set **Root Directory** to `server`
+
+4. **Configure Environment Variables**:
+   - `NODE_ENV=production`
+   - `MONGODB_URI` - Copy from Railway MongoDB service
+   - `JWT_SECRET` - Generate with: `openssl rand -base64 32`
+   - `JWT_EXPIRE=7d`
+   - `FRONTEND_URL` - Your Vercel URL (e.g., `https://your-app.vercel.app`)
+
+5. **Get Backend URL** from Railway (e.g., `https://your-app.up.railway.app`)
+
+6. **Update Vercel Environment Variables**:
+   - Go back to Vercel
+   - Update `VITE_API_URL` to: `https://your-app.up.railway.app/api`
+
+### Alternative Backend Hosting
+
+**Render.com**:
+- Create Web Service
+- Root Directory: `server`
+- Build: `npm install`
+- Start: `npm start`
+
+**Heroku**:
+- Install Heroku CLI
+- `heroku create your-app-name`
+- `heroku config:set KEY=value`
+- `git push heroku main`
+
+### Post-Deployment Checklist
+
+- [ ] Backend deployed and accessible
+- [ ] Frontend `VITE_API_URL` points to backend
+- [ ] Backend `FRONTEND_URL` points to Vercel frontend
+- [ ] MongoDB Atlas configured (if using cloud)
+- [ ] Web3Forms access key set
+- [ ] Test admin registration/login
+- [ ] Test creating blog posts
+- [ ] Test contact form
+
+### Important Notes
+
+- **Backend URL**: Update `VITE_API_URL` in Vercel after backend deployment
+- **CORS**: Ensure `FRONTEND_URL` in backend matches your Vercel URL exactly (include `https://`)
+- **MongoDB**: Use MongoDB Atlas free tier for production
+- **Environment Variables**: Never commit `.env` files - use platform environment variables
+
+## Environment Variables
+
+### Frontend (.env)
+- `VITE_API_URL` - Backend API URL
+- `VITE_WEB3FORMS_ACCESS_KEY` - Web3Forms access key for contact form
+
+### Backend (server/.env)
+- `PORT` - Server port (default: 5000)
+- `NODE_ENV` - Environment (development/production)
+- `MONGODB_URI` - MongoDB connection string
+- `JWT_SECRET` - Secret key for JWT tokens
+- `JWT_EXPIRE` - JWT expiration time
+- `FRONTEND_URL` - Frontend URL for CORS
+
+## License
+
+ISC

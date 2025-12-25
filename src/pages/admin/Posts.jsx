@@ -17,7 +17,7 @@ export default function Posts() {
   );
 
   const handleDelete = async (id, title) => {
-    if (window.confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
+    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
       try {
         await deleteBlog(id);
         toast({
@@ -26,8 +26,8 @@ export default function Posts() {
         });
       } catch (error) {
         toast({
-          title: 'Error',
-          description: error.message || 'Failed to delete post. Please try again.',
+          title: 'Delete failed',
+          description: error.message || 'Failed to delete post.',
           variant: 'destructive',
         });
       }
@@ -35,14 +35,22 @@ export default function Posts() {
     setOpenMenu(null);
   };
 
-  const handleToggleFeatured = (id, currentFeatured) => {
-    updateBlog(id, { featured: !currentFeatured });
-    toast({
-      title: currentFeatured ? 'Removed from featured' : 'Added to featured',
-      description: currentFeatured 
-        ? 'The post is no longer featured.' 
-        : 'The post is now featured on the homepage.',
-    });
+  const handleToggleFeatured = async (id, currentFeatured) => {
+    try {
+      await updateBlog(id, { featured: !currentFeatured });
+      toast({
+        title: currentFeatured ? 'Removed from featured' : 'Added to featured',
+        description: currentFeatured 
+          ? 'The post is no longer featured.' 
+          : 'The post is now featured on the homepage.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Update failed',
+        description: error.message || 'Failed to update post.',
+        variant: 'destructive',
+      });
+    }
     setOpenMenu(null);
   };
 

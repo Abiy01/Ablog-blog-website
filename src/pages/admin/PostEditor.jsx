@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/button';
 import { useToast } from '../../hooks/use-toast';
 
-const categories = ['Design', 'Development', 'Technology'];
+const categories = ['Design', 'Development', 'Technology', 'Business', 'Lifestyle'];
 
 const defaultCoverImages = [
   'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&h=600&fit=crop',
@@ -39,27 +39,39 @@ export default function PostEditor() {
 
   // Load existing post data if editing
   useEffect(() => {
-    if (isEditing) {
-      const post = getBlogById(id);
-      if (post) {
-        setFormData({
-          title: post.title,
-          excerpt: post.excerpt,
-          content: post.content,
-          category: post.category,
-          tags: post.tags.join(', '),
-          coverImage: post.coverImage,
-          featured: post.featured,
-        });
-      } else {
-        toast({
-          title: 'Post not found',
-          description: 'The post you are trying to edit does not exist.',
-          variant: 'destructive',
-        });
-        navigate('/admin/posts');
+    const loadPost = async () => {
+      if (isEditing) {
+        try {
+          const post = await getBlogById(id);
+          if (post) {
+            setFormData({
+              title: post.title,
+              excerpt: post.excerpt || '',
+              content: post.content,
+              category: post.category,
+              tags: post.tags ? post.tags.join(', ') : '',
+              coverImage: post.coverImage || '',
+              featured: post.featured || false,
+            });
+          } else {
+            toast({
+              title: 'Post not found',
+              description: 'The post you are trying to edit does not exist.',
+              variant: 'destructive',
+            });
+            navigate('/admin/posts');
+          }
+        } catch (error) {
+          toast({
+            title: 'Error loading post',
+            description: 'Failed to load post data.',
+            variant: 'destructive',
+          });
+          navigate('/admin/posts');
+        }
       }
-    }
+    };
+    loadPost();
   }, [id, isEditing, getBlogById, navigate, toast]);
 
   const handleChange = (e) => {
@@ -73,10 +85,10 @@ export default function PostEditor() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.title.trim() || !formData.content.trim() || !formData.excerpt.trim()) {
+    if (!formData.title.trim() || !formData.content.trim()) {
       toast({
         title: 'Missing required fields',
-        description: 'Please fill in the title, excerpt, and content.',
+        description: 'Please fill in the title and content.',
         variant: 'destructive',
       });
       return;
@@ -86,9 +98,14 @@ export default function PostEditor() {
 
     try {
       const postData = {
-        ...formData,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        author: admin?.name || 'Admin',
+        title: formData.title,
+        excerpt: formData.excerpt || '',
+        content: formData.content,
+        coverImage: formData.coverImage || '',
+        category: formData.category,
+        tags: formData.tags, // Send as string, backend will process it
+        featured: formData.featured || false,
+        status: 'published', // Default to published
       };
 
       if (isEditing) {
@@ -107,7 +124,7 @@ export default function PostEditor() {
 
       navigate('/admin/posts');
     } catch (error) {
-      console.error('Error saving post:', error);
+      console.error('Error creating/updating post:', error);
       toast({
         title: 'Error',
         description: error.message || 'Something went wrong. Please try again.',
@@ -223,14 +240,13 @@ export default function PostEditor() {
         {/* Excerpt */}
         <div>
           <label htmlFor="excerpt" className="block text-sm font-medium mb-2">
-            Excerpt <span className="text-destructive">*</span>
+            Excerpt
           </label>
-            <textarea
+          <textarea
             id="excerpt"
             name="excerpt"
             value={formData.excerpt}
             onChange={handleChange}
-            required
             rows={2}
             className="w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
             placeholder="A brief summary of your post..."

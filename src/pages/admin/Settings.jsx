@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { User, Mail, Lock, Save, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { authService } from '../../services/authService';
+import { adminAPI } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { useToast } from '../../hooks/use-toast';
 
 export default function Settings() {
-  const { admin, refreshAdmin } = useAuth();
+  const { admin } = useAuth();
   const { toast } = useToast();
 
   const [profile, setProfile] = useState({
@@ -20,56 +20,32 @@ export default function Settings() {
     confirm: '',
   });
 
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
-  const [isLoadingPassword, setIsLoadingPassword] = useState(false);
-
-  // Update profile state when admin changes
-  useEffect(() => {
-    if (admin) {
-      setProfile({
-        name: admin.name || '',
-        email: admin.email || '',
-      });
-    }
-  }, [admin]);
-
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    setIsLoadingProfile(true);
-
     try {
-      const updatedProfile = await authService.updateProfile(profile);
+      const updated = await adminAPI.updateProfile(profile);
+      
+      // Update local state
+      setProfile({
+        name: updated.name,
+        email: updated.email,
+      });
+      
       toast({
         title: 'Profile updated',
         description: 'Your profile information has been saved.',
       });
-      // Refresh admin data in context
-      if (updatedProfile) {
-        await refreshAdmin();
-      }
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || error.message || 'Failed to update profile.',
+        title: 'Update failed',
+        description: error.message || 'Failed to update profile.',
         variant: 'destructive',
       });
-    } finally {
-      setIsLoadingProfile(false);
     }
   };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!passwords.current || !passwords.new || !passwords.confirm) {
-      toast({
-        title: 'Missing fields',
-        description: 'Please fill in all password fields.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     if (passwords.new !== passwords.confirm) {
       toast({
         title: 'Passwords do not match',
@@ -78,20 +54,13 @@ export default function Settings() {
       });
       return;
     }
-
-    if (passwords.new.length < 6) {
-      toast({
-        title: 'Password too short',
-        description: 'New password must be at least 6 characters long.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsLoadingPassword(true);
-
+    
     try {
-      await authService.updatePassword(passwords.current, passwords.new);
+      await adminAPI.updatePassword({
+        currentPassword: passwords.current,
+        newPassword: passwords.new,
+      });
+      
       toast({
         title: 'Password updated',
         description: 'Your password has been changed successfully.',
@@ -99,12 +68,10 @@ export default function Settings() {
       setPasswords({ current: '', new: '', confirm: '' });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || error.message || 'Failed to update password.',
+        title: 'Update failed',
+        description: error.message || 'Failed to update password.',
         variant: 'destructive',
       });
-    } finally {
-      setIsLoadingPassword(false);
     }
   };
 
@@ -151,12 +118,8 @@ export default function Settings() {
             />
           </div>
 
-          <Button type="submit" className="gap-2" disabled={isLoadingProfile}>
-            {isLoadingProfile ? (
-              <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
+          <Button type="submit" className="gap-2">
+            <Save className="h-4 w-4" />
             Save Changes
           </Button>
         </form>
@@ -209,17 +172,12 @@ export default function Settings() {
             />
           </div>
 
-          <Button type="submit" className="gap-2" disabled={isLoadingPassword}>
-            {isLoadingPassword ? (
-              <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Lock className="h-4 w-4" />
-            )}
+          <Button type="submit" className="gap-2">
+            <Lock className="h-4 w-4" />
             Update Password
           </Button>
         </form>
       </div>
-
     </div>
   );
 }
