@@ -265,39 +265,73 @@ Authorization: Bearer <token>
 
 6. **Click Deploy** - Vercel will automatically build and deploy
 
-### Backend Deployment (Railway - Recommended)
+### Backend Deployment (Render)
 
-The backend needs to be deployed separately. Railway is recommended:
+Render is a great option for deploying your backend. You can use the provided `render.yaml` file for easy setup:
 
-1. **Go to [railway.app](https://railway.app)** and sign in
+#### Option 1: Using render.yaml (Recommended)
 
-2. **Create a New Project** → **Add MongoDB** (free tier available)
+1. **Push your code to GitHub** (if not already done)
 
-3. **Add Backend Service**:
-   - Click "New" → "GitHub Repo"
-   - Select your repository
-   - Set **Root Directory** to `server`
+2. **Go to [render.com](https://render.com)** and sign in
 
-4. **Configure Environment Variables**:
-   - `NODE_ENV=production`
-   - `MONGODB_URI` - Copy from Railway MongoDB service
+3. **Create a New Web Service**:
+   - Click "New +" → "Blueprint"
+   - Connect your GitHub repository
+   - Render will automatically detect the `render.yaml` file
+
+4. **Configure Environment Variables** in Render Dashboard:
+   - `NODE_ENV` = `production` (already set in render.yaml)
+   - `MONGODB_URI` - Your MongoDB connection string (MongoDB Atlas recommended)
+   - `JWT_SECRET` - Generate a secure secret: `openssl rand -base64 32`
+   - `JWT_EXPIRE` = `7d` (already set in render.yaml)
+   - `FRONTEND_URL` - Your frontend URL (e.g., `https://your-app.vercel.app`)
+
+5. **Deploy** - Render will automatically build and deploy
+
+#### Option 2: Manual Setup
+
+1. **Go to [render.com](https://render.com)** and sign in
+
+2. **Create a New Web Service**:
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository
+
+3. **Configure the Service**:
+   - **Name**: `ablog-backend` (or your preferred name)
+   - **Environment**: `Node`
+   - **Root Directory**: `server`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+
+4. **Add Environment Variables**:
+   - `NODE_ENV` = `production`
+   - `PORT` = `10000` (Render sets this automatically, but you can specify)
+   - `MONGODB_URI` - Your MongoDB Atlas connection string
    - `JWT_SECRET` - Generate with: `openssl rand -base64 32`
-   - `JWT_EXPIRE=7d`
-   - `FRONTEND_URL` - Your Vercel URL (e.g., `https://your-app.vercel.app`)
+   - `JWT_EXPIRE` = `7d`
+   - `FRONTEND_URL` - Your frontend URL (e.g., `https://your-app.vercel.app`)
 
-5. **Get Backend URL** from Railway (e.g., `https://your-app.up.railway.app`)
+5. **Deploy** - Click "Create Web Service"
 
-6. **Update Vercel Environment Variables**:
-   - Go back to Vercel
-   - Update `VITE_API_URL` to: `https://your-app.up.railway.app/api`
+6. **Get Backend URL** from Render (e.g., `https://ablog-backend.onrender.com`)
+
+7. **Update Frontend Environment Variables**:
+   - Update `VITE_API_URL` to: `https://ablog-backend.onrender.com/api`
+
+#### MongoDB Setup for Render
+
+1. **Create MongoDB Atlas Cluster** (free tier available):
+   - Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+   - Create a free cluster
+   - Get your connection string
+   - Add your Render service IP to Atlas IP whitelist (or use `0.0.0.0/0` for all IPs)
+
+2. **Or use Render's MongoDB**:
+   - In Render dashboard, click "New +" → "MongoDB"
+   - Render will provide the connection string automatically
 
 ### Alternative Backend Hosting
-
-**Render.com**:
-- Create Web Service
-- Root Directory: `server`
-- Build: `npm install`
-- Start: `npm start`
 
 **Heroku**:
 - Install Heroku CLI
